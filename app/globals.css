@@ -1,0 +1,389 @@
+@import "tailwindcss";
+
+/* 다크 모드: <html class="dark"> (헤더의 테마 토글) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * 디자인 토큰 — 기준 문서: docs/DESIGN.md
+ * canvas(배경) · surface(카드) · line(구분선) · fg(글자) · primary(네이비 1색) · status(상태)
+ * 상태 의미 고정: ok=승인 · info/progress=진행·상신 · bad=반려·오류 · hold=보류 · warn=경고·주의
+ * 글자 대비 4.5:1 이상 (fg-subtle은 surface 위 보조 정보 전용)
+ */
+:root {
+  /* 업무형 밀도(B안): 거의 흰 중립 + 네이비 포인트. 캔버스와 surface 대비는 낮게, 층은 1px 선으로 */
+  --c-canvas: #fafafa;
+  --c-surface: #ffffff;
+  --c-surface-muted: #f4f4f5;
+  --c-line: #e8e8ea;
+  --c-line-strong: #d9d9dc;
+  --c-fg: #18181b;
+  --c-fg-muted: #5f5f69;
+  --c-fg-subtle: #6e6e78;
+  --c-fg-2: #3f3f46;
+  --c-fg-3: #52525b;
+  --c-primary: #164364;
+  --c-primary-hover: #0e2f48;
+  --c-primary-disabled: #e8e8ea;
+  --c-on-primary: #ffffff;
+  --c-primary-soft: #eaf0f6;
+  --c-primary-soft-2: #d5e1ec;
+  --c-primary-mid: #7f9fb8;
+  --c-primary-500: #285a80;
+  --c-accent: #f15262;
+  --c-brand: #bf1a49;
+  --c-approved: #00875f;
+  --c-progress: #2f6fb0;
+  --c-rejected: #d93a4a;
+  --c-hold: #7c4dcc;
+  /* 상태 보조색 (배경 50·100 · 테두리 200 · 채움 500·600 · 글자 700·900) */
+  --c-warn-50: #fff8eb; --c-warn-100: #feedc8; --c-warn-200: #f6d79a; --c-warn-500: #f59e0b; --c-warn-700: #8a5100; --c-warn-900: #6e3f00;
+  --c-ok-50: #e8f6f1; --c-ok-100: #cdeee2; --c-ok-200: #9edcc6; --c-ok-500: #00a37a; --c-ok-600: #00875f; --c-ok-700: #006b4e; --c-ok-900: #00553f;
+  --c-bad-50: #fdeef0; --c-bad-100: #fbd9dd; --c-bad-200: #f5b3ba; --c-bad-500: #f15262; --c-bad-600: #d93a4a; --c-bad-700: #b8293a; --c-bad-900: #8a1f2b;
+  --c-info-50: #eaf0f6; --c-info-100: #d5e1ec; --c-info-200: #a9c0d4; --c-info-500: #2f6fb0; --c-info-700: #1d4f7a; --c-info-900: #0e2f48;
+  --c-hold-50: #f3eefc; --c-hold-100: #e6dcf8; --c-hold-700: #5b2ea8;
+  color-scheme: light;
+}
+
+.dark {
+  /* 순흑 대신 차콜(B안 톤). 위 층일수록 밝게 (canvas < surface < surface-muted), 그림자 없이 1px 선 */
+  --c-canvas: #0a0a0b;
+  --c-surface: #111113;
+  --c-surface-muted: #18181b;
+  --c-line: #222226;
+  --c-line-strong: #2e2e33;
+  --c-fg: #ededef;
+  --c-fg-muted: #a1a1aa;
+  --c-fg-subtle: #8b8b94;
+  --c-fg-2: #d4d4d8;
+  --c-fg-3: #b4b4bb;
+  --c-primary: #7cb0e6;
+  --c-primary-hover: #9cc4ee;
+  --c-primary-disabled: #222226;
+  --c-on-primary: #0f1a26;
+  --c-primary-soft: #131c26;
+  --c-primary-soft-2: #1b2a3a;
+  --c-primary-mid: #4a7aa6;
+  --c-primary-500: #7cb0e6;
+  --c-accent: #ff6b78;
+  --c-brand: #e0386a;
+  --c-approved: #3ecf8e;
+  --c-progress: #8ec2f5;
+  --c-rejected: #ff6b78;
+  --c-hold: #b39dff;
+  --c-warn-50: #241d10; --c-warn-100: #33280f; --c-warn-200: #4d3c16; --c-warn-500: #f5b544; --c-warn-700: #f5c76a; --c-warn-900: #fde3a7;
+  --c-ok-50: #10221b; --c-ok-100: #143026; --c-ok-200: #1d4a39; --c-ok-500: #3ecf8e; --c-ok-600: #3ecf8e; --c-ok-700: #5fd9a3; --c-ok-900: #a7f0cf;
+  --c-bad-50: #2a1518; --c-bad-100: #3a1b20; --c-bad-200: #5a2830; --c-bad-500: #ff6b78; --c-bad-600: #ff6b78; --c-bad-700: #ff8a95; --c-bad-900: #ffc2c8;
+  --c-info-50: #16202b; --c-info-100: #1c2c3d; --c-info-200: #2a4560; --c-info-500: #7cb0e6; --c-info-700: #9cc4ee; --c-info-900: #c8def5;
+  --c-hold-50: #1d1729; --c-hold-100: #2a2140; --c-hold-700: #c2a8ff;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Malgun Gothic", system-ui, sans-serif;
+
+  /* 타이포 스케일 (최소 12px) — text-caption · text-label · text-title · text-h1 · text-kpi · text-amount */
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-label: 13px;
+  --text-label--line-height: 18px;
+  --text-title: 16px;
+  --text-title--line-height: 24px;
+  --text-h1: 20px;
+  --text-h1--line-height: 28px;
+  --text-kpi: 24px;
+  --text-kpi--line-height: 32px;
+  --text-amount: 28px;
+  --text-amount--line-height: 36px;
+
+  /* 그림자: 카드는 없음(테두리만). 팝오버·시트에만 */
+  --shadow-pop: 0 4px 16px rgb(16 24 40 / 0.08);
+  --shadow-sheet: 0 12px 32px rgb(16 24 40 / 0.16);
+
+  --color-canvas: var(--c-canvas);
+  --color-surface: var(--c-surface);
+  --color-surface-muted: var(--c-surface-muted);
+  --color-line: var(--c-line);
+  --color-line-strong: var(--c-line-strong);
+  --color-fg: var(--c-fg);
+  --color-fg-muted: var(--c-fg-muted);
+  --color-fg-subtle: var(--c-fg-subtle);
+  --color-fg-2: var(--c-fg-2);
+  --color-fg-3: var(--c-fg-3);
+  --color-primary: var(--c-primary);
+  --color-primary-hover: var(--c-primary-hover);
+  --color-on-primary: var(--c-on-primary);
+  --color-accent: var(--c-accent);
+  --color-brand: var(--c-brand);
+  --color-status-approved: var(--c-approved);
+  --color-status-progress: var(--c-progress);
+  --color-status-rejected: var(--c-rejected);
+  --color-status-hold: var(--c-hold);
+
+  /* 기존 brand-* 클래스 → 네이비 primary */
+  --color-brand-50: var(--c-primary-soft);
+  --color-brand-100: var(--c-primary-soft-2);
+  --color-brand-300: var(--c-primary-mid);
+  --color-brand-500: var(--c-primary-500);
+  --color-brand-600: var(--c-primary);
+  --color-brand-700: var(--c-primary-hover);
+
+  /* 기존 slate-* 클래스 → 토큰 (라이트/다크 자동 전환) */
+  --color-slate-50: var(--c-surface-muted);
+  --color-slate-100: var(--c-surface-muted);
+  --color-slate-200: var(--c-line);
+  --color-slate-300: var(--c-line-strong);
+  --color-slate-400: var(--c-fg-subtle);
+  --color-slate-500: var(--c-fg-muted);
+  --color-slate-600: var(--c-fg-3);
+  --color-slate-700: var(--c-fg-2);
+  --color-slate-800: var(--c-fg);
+  --color-slate-900: var(--c-fg);
+
+  /* 상태 색 (amber=경고·주의, emerald=승인, rose=반려·오류, sky=진행·상신·정보, violet=보류) */
+  --color-amber-50: var(--c-warn-50);
+  --color-amber-100: var(--c-warn-100);
+  --color-amber-200: var(--c-warn-200);
+  --color-amber-500: var(--c-warn-500);
+  --color-amber-600: var(--c-warn-500);
+  --color-amber-700: var(--c-warn-700);
+  --color-amber-800: var(--c-warn-700);
+  --color-amber-900: var(--c-warn-900);
+  --color-emerald-50: var(--c-ok-50);
+  --color-emerald-100: var(--c-ok-100);
+  --color-emerald-200: var(--c-ok-200);
+  --color-emerald-500: var(--c-ok-500);
+  --color-emerald-600: var(--c-ok-600);
+  --color-emerald-700: var(--c-ok-700);
+  --color-emerald-800: var(--c-ok-700);
+  --color-emerald-900: var(--c-ok-900);
+  --color-rose-50: var(--c-bad-50);
+  --color-rose-100: var(--c-bad-100);
+  --color-rose-200: var(--c-bad-200);
+  --color-rose-500: var(--c-bad-500);
+  --color-rose-600: var(--c-bad-600);
+  --color-rose-700: var(--c-bad-700);
+  --color-rose-800: var(--c-bad-700);
+  --color-rose-900: var(--c-bad-900);
+  --color-sky-50: var(--c-info-50);
+  --color-sky-100: var(--c-info-100);
+  --color-sky-200: var(--c-info-200);
+  --color-sky-500: var(--c-info-500);
+  --color-sky-600: var(--c-info-500);
+  --color-sky-700: var(--c-info-700);
+  --color-sky-800: var(--c-info-700);
+  --color-sky-900: var(--c-info-900);
+  --color-violet-50: var(--c-hold-50);
+  --color-violet-100: var(--c-hold-100);
+  --color-violet-500: var(--c-hold);
+  --color-violet-700: var(--c-hold-700);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  @apply bg-canvas text-fg antialiased;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 키보드 포커스 링 */
+:where(a, button, select, summary, [role="tab"], [role="switch"], [role="radio"], input[type="checkbox"], input[type="radio"]):focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+@layer base {
+  /* 체크박스·라디오: 브랜드 색 · 16px (유틸리티 클래스로 덮어쓸 수 있음) */
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--c-primary);
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+  /* 터치 반응: 더블탭 확대 대기 없이 바로 클릭, 회색 탭 하이라이트 대신 아래 눌림 표시 */
+  a, button, [role="button"], label, summary, select {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* 눌림 표시 — 응답을 기다리는 동안에도 탭이 먹었다는 것을 바로 보여 준다 */
+  button:not(:disabled):active, a:active, [role="button"]:active, summary:active {
+    opacity: 0.7;
+  }
+}
+
+/*
+ * 높이 단 (모바일 / PC sm 이상) — PC는 업무형 밀도(B안)
+ *   sm 36 / 28 · md(기본) 44 / 32 · lg 52 / 40
+ * 버튼·입력·seg·칩이 같은 줄에 놓이면 같은 단을 쓴다.
+ * 모바일 입력 글자는 16px (iOS 확대 방지) — 작은 글자는 반드시 sm:text-* 로만.
+ */
+@layer components {
+  /* 공통 폼 요소 — 높이 = 버튼 md (44 / 32) */
+  .input {
+    @apply min-h-11 w-full rounded-lg border border-line-strong bg-surface px-3 py-2.5 text-base text-fg outline-none transition
+      sm:min-h-8 sm:rounded-md sm:px-2.5 sm:py-1 sm:text-sm
+      placeholder:text-fg-subtle focus:border-primary focus:ring-2 focus:ring-primary/20
+      disabled:bg-surface-muted disabled:text-fg-muted;
+  }
+  textarea.input {
+    @apply min-h-0;
+  }
+  .label {
+    @apply mb-1 block text-label font-bold text-fg-muted;
+  }
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger,
+  .btn-success,
+  .btn-ghost {
+    @apply inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold whitespace-nowrap
+      transition-colors disabled:cursor-not-allowed
+      sm:min-h-8 sm:rounded-md sm:px-3 sm:py-1 sm:text-label sm:font-semibold;
+  }
+  /* 단색 버튼 글자는 항상 on-primary (라이트 흰색 · 다크 진한 남색) */
+  .btn-primary {
+    @apply bg-primary text-on-primary hover:bg-primary-hover disabled:bg-[var(--c-primary-disabled)] disabled:text-fg-subtle;
+  }
+  .btn-secondary {
+    @apply border border-line-strong bg-surface font-semibold text-fg-2 hover:bg-surface-muted hover:text-fg
+      disabled:opacity-50 sm:font-medium sm:shadow-[0_1px_2px_rgb(0_0_0/0.04)] dark:sm:shadow-none;
+  }
+  .btn-danger {
+    @apply bg-rose-600 text-on-primary hover:bg-rose-700 disabled:opacity-50;
+  }
+  .btn-success {
+    @apply bg-status-approved text-on-primary hover:opacity-90 disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply font-medium text-fg-muted hover:bg-surface-muted hover:text-fg disabled:opacity-50;
+  }
+  /* 작은 버튼 (36 / 28) — 변형 클래스와 함께 사용 (btn-secondary btn-sm) */
+  .btn-sm {
+    @apply min-h-9 rounded-lg px-3 py-1 text-label sm:min-h-7 sm:rounded-md sm:px-2.5 sm:py-0.5 sm:text-label;
+  }
+  /* 큰 버튼 (52 / 40) — 화면당 주요 CTA 하나 */
+  .btn-lg {
+    @apply min-h-13 px-5 text-base sm:min-h-10 sm:px-4 sm:text-sm;
+  }
+  /* 카드 — PC: 1px 선 + 그림자 거의 없음 + 모서리 8px (모바일 12px) */
+  .card {
+    @apply rounded-xl border border-line bg-surface sm:rounded-lg sm:shadow-[0_1px_2px_rgb(0_0_0/0.04)] dark:sm:shadow-none;
+  }
+  /* 카드 머리글 — PC 44px + 아래 1px 선 */
+  .card-head {
+    @apply flex items-center justify-between gap-3 border-b border-line px-4 py-3.5 sm:min-h-11 sm:py-2;
+  }
+  /* 카드·묶음 제목 — 모든 폭에서 16px 굵게 (본문 16px·항목 줄보다 작아지지 않게) */
+  .section-title {
+    @apply text-title font-bold;
+  }
+
+  /* 안내 상자 — 첫 자식이 아이콘(svg)이면 아이콘 + 본문 배치 */
+  .alert {
+    @apply rounded-xl border px-4 py-3 text-sm leading-5 sm:rounded-lg sm:px-3.5 sm:py-2.5;
+  }
+  .alert:has(> svg:first-child) {
+    @apply flex items-start gap-2;
+  }
+  .alert > svg:first-child {
+    @apply mt-0.5 size-4 shrink-0;
+  }
+  .alert-warn {
+    @apply border-amber-200 bg-amber-50 text-amber-900;
+  }
+  .alert-danger {
+    @apply border-rose-200 bg-rose-50 text-rose-900;
+  }
+  .alert-info {
+    @apply border-sky-200 bg-sky-50 text-sky-900;
+  }
+  .alert-ok {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-900;
+  }
+  /* 잠김·마감 안내 — 마감은 neutral (앰버는 경고 전용) */
+  .alert-neutral {
+    @apply border-line bg-surface-muted text-fg-2;
+  }
+
+  /* 배지 — 높이 20px · 12px · 600 · 연한 면(*-50). 상태는 색만으로 구분하지 않는다(글자·아이콘 함께) */
+  .badge {
+    @apply inline-flex h-5 shrink-0 items-center gap-1 rounded-md px-1.5 text-xs leading-4 font-semibold whitespace-nowrap;
+  }
+  .badge-neutral {
+    @apply bg-surface-muted text-fg-muted ring-1 ring-line ring-inset;
+  }
+  .badge-primary {
+    @apply bg-brand-50 text-primary;
+  }
+  .badge-ok {
+    @apply bg-emerald-50 text-emerald-800;
+  }
+  .badge-warn {
+    @apply bg-amber-50 text-amber-800;
+  }
+  .badge-bad {
+    @apply bg-rose-50 text-rose-700;
+  }
+  .badge-info {
+    @apply bg-sky-50 text-sky-800;
+  }
+  .badge-hold {
+    @apply bg-violet-50 text-violet-700;
+  }
+  .dark .badge-neutral {
+    @apply bg-line ring-0;
+  }
+
+  /*
+   * 세그먼트 탭 — 트랙 높이 = 버튼 md (모바일 44 · PC 32)
+   * 선택 항목은 aria-selected / aria-current="page" / aria-pressed / aria-checked(라디오) = "true"
+   */
+  .seg {
+    @apply inline-flex max-w-full gap-1 overflow-x-auto rounded-lg bg-surface-muted p-1
+      sm:gap-0.5 sm:rounded-md sm:border sm:border-line sm:p-0.5;
+  }
+  .seg > :where(button, a) {
+    @apply inline-flex min-h-9 shrink-0 items-center justify-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap text-fg-muted transition-colors hover:text-fg
+      sm:min-h-[26px] sm:rounded sm:px-2.5 sm:py-0.5 sm:text-label;
+  }
+  .seg > :where([aria-selected="true"], [aria-current="page"], [aria-pressed="true"], [aria-checked="true"]) {
+    @apply bg-surface font-semibold text-fg ring-1 ring-line-strong;
+  }
+
+  /* 표 — 머리 36px · 행 40px · 숫자 tabular */
+  .table {
+    @apply w-full border-collapse text-sm tabular-nums;
+  }
+  .table th {
+    @apply h-9 whitespace-nowrap border-b border-line bg-surface-muted px-3 py-1.5 text-left text-xs font-medium text-fg-muted sm:px-4;
+  }
+  .table td {
+    @apply h-10 border-b border-line px-3 py-2 align-middle text-fg sm:px-4;
+  }
+  .table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+}
+
+/* d2 — 차트 전용 경고 채움 (막대·차트의 '빠름·초과 예상'에만. 배지·알림은 기존 warn 토큰)
+ * 다크: 채도를 낮춰 막대에서 가장 밝은 요소가 되지 않게 — #c9973a, 휘도 0.35(< primary 0.41),
+ *       surface #17181c 대비 6.73:1 · 트랙 #1f2126 대비 6.11:1 */
+:root {
+  --c-chart-warn: var(--c-warn-500);
+}
+:root.dark {
+  --c-chart-warn: #c9973a;
+}
+@theme inline {
+  --color-chart-warn: var(--c-chart-warn);
+}
+
+/* 구분·범위 전환 중 (components/ScopeToggle) — 본문을 흐리게 해 새로 그리는 중임을 보여 준다 */
+html[data-nav-pending] main .card:not(.card .card) { opacity: 0.55; transition: opacity 120ms ease-out 80ms; pointer-events: none; }

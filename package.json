@@ -1,0 +1,57 @@
+{
+  "name": "opex-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "serve": "node scripts/serve.mjs",
+    "cf:build": "node scripts/cf-build.mjs",
+    "cf:deploy": "node scripts/cf-build.mjs --deploy",
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "db:setup": "prisma db push && prisma db seed",
+    "studio": "prisma studio",
+    "predev": "node scripts/db-backup.mjs --quiet",
+    "db:backup": "node scripts/db-backup.mjs",
+    "db:reset": "prisma db push && prisma db seed -- --reset",
+    "dev:e2e": "node scripts/dev-e2e.mjs",
+    "check:invariants": "tsx scripts/check-invariants.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/adapter-d1": "6.19.3",
+    "@prisma/client": "6.19.3",
+    "exceljs": "4.4.0",
+    "next": "15.5.27",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@opennextjs/cloudflare": "1.20.10",
+    "@tailwindcss/postcss": "4.1.14",
+    "@types/node": "22",
+    "@types/react": "19",
+    "@types/react-dom": "19",
+    "prisma": "6.19.3",
+    "tailwindcss": "4.1.14",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "vitest": "^4.1.11",
+    "wrangler": "4.149.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "deepmerge-ts": "^8.0.0",
+      "glob@<10.5.0": "^10.5.0",
+      "next>postcss": "^8.5.29",
+      "uuid": "^11.1.1"
+    }
+  }
+}

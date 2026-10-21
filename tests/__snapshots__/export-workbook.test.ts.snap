@@ -1,0 +1,17 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildWorkbook (엑셀 양식 회귀) > 가짜 데이터로 만든 워크북이 기준과 같다 > bytes 1`] = `"214a728d4b22e4edc244477cd790e5ac7bd8faa833a1192935d7f4a922ba2b74"`;
+
+exports[`buildWorkbook (엑셀 양식 회귀) > 가짜 데이터로 만든 워크북이 기준과 같다 > hash 1`] = `"6ad787fa2212a99a492d4040d2d2c51413fe36bdd587168440b9bbee46b2f3b7"`;
+
+exports[`buildWorkbook (엑셀 양식 회귀) > 가짜 데이터로 만든 워크북이 기준과 같다 > sheets 1`] = `
+[
+  "총괄현황",
+  "프로젝트 운영비(작성금지)",
+  "1월",
+  "2월",
+  "3월",
+  "유효성검사_편집삭제금지",
+  "데이터시트",
+]
+`;

@@ -1,0 +1,881 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`규정 점검 (policy) > checkPolicy × 600 · koreanWon · dateWithWeekday 1`] = `"3b7b445b6e496fe0f48e75fb15d779285c592a309509d3ed96ec42ff1684c46a"`;
+
+exports[`규정 점검 (policy) > checkPolicy × 600 · koreanWon · dateWithWeekday 2`] = `186`;
+
+exports[`규정 점검 (policy) > checkPolicy × 600 · koreanWon · dateWithWeekday 3`] = `"33f859d44af18b4d8279cf9cb5b2fc0e3d81ebb6cab0a54518f08cee11a84f19"`;
+
+exports[`규정 점검 (policy) > checkPolicy × 600 · koreanWon · dateWithWeekday 4`] = `"7e88e2527a728a13d239441d9181dad7af863b5d0f77820dac6ad8c8feaff10f"`;
+
+exports[`마감 (closing) · chunk > defaultClosingMonth · availableActions 1`] = `
+[
+  "2020-03",
+  "2020-02",
+  "2029-12",
+]
+`;
+
+exports[`마감 (closing) · chunk > defaultClosingMonth · availableActions 2`] = `
+[
+  [
+    [
+      "close",
+    ],
+    [],
+  ],
+  [
+    [
+      "reopen",
+      "submit",
+    ],
+    [],
+  ],
+  [
+    [],
+    [
+      "approve",
+      "reject",
+    ],
+  ],
+  [
+    [],
+    [
+      "revoke",
+    ],
+  ],
+  [
+    [
+      "close",
+      "reopen",
+    ],
+    [],
+  ],
+]
+`;
+
+exports[`마감 (closing) · chunk > defaultClosingMonth · availableActions 3`] = `
+[
+  90,
+  90,
+  90,
+  90,
+  90,
+  90,
+  60,
+]
+`;
+
+exports[`엑셀 월 시트 (writeMonthSheet) > 600줄 월 시트 — 셀 값·수식·서식이 기준과 같다 1`] = `"b22ea4ace665fde85630104eb22e4936c4fc8afa31fa80f32a4c7cb7088ef196"`;
+
+exports[`엑셀 월 시트 (writeMonthSheet) > 600줄 월 시트 — 셀 값·수식·서식이 기준과 같다 2`] = `"c90ecf17bec5c99b5eb18988a3fb2d55b28ac085eb97c203e43dd9eccac6c963"`;
+
+exports[`정산·예산 (settlement) > budgetSummary · monthlyByItem · payerUsage · riskItems 1`] = `
+{
+  "rows": [
+    {
+      "itemId": "it-night",
+      "planned": 1000000,
+      "rate": 322.3,
+      "remaining": -2222500,
+      "spent": 3222500,
+    },
+    {
+      "itemId": "it-holiday",
+      "planned": 2000000,
+      "rate": 159.8,
+      "remaining": -1196500,
+      "spent": 3196500,
+    },
+    {
+      "itemId": "it-meeting",
+      "planned": 3000000,
+      "rate": 95.7,
+      "remaining": 128300,
+      "spent": 2871700,
+    },
+    {
+      "itemId": "it-cafe",
+      "planned": 4000000,
+      "rate": 76.2,
+      "remaining": 950900,
+      "spent": 3049100,
+    },
+    {
+      "itemId": "it-etc",
+      "planned": 5000000,
+      "rate": 64.5,
+      "remaining": 1775000,
+      "spent": 3225000,
+    },
+  ],
+  "totalPlanned": 15000000,
+  "totalRate": 103.8,
+  "totalRemaining": -564800,
+  "totalSpent": 15564800,
+}
+`;
+
+exports[`정산·예산 (settlement) > budgetSummary · monthlyByItem · payerUsage · riskItems 2`] = `
+{
+  "it-cafe": {
+    "2026-01": 249000,
+    "2026-02": 251400,
+    "2026-03": 219000,
+    "2026-04": 242700,
+    "2026-05": 319400,
+    "2026-06": 332800,
+    "2026-07": 258200,
+    "2026-08": 313200,
+    "2026-09": 205600,
+    "2026-10": 223400,
+    "2026-11": 243400,
+    "2026-12": 191000,
+  },
+  "it-etc": {
+    "2026-01": 281700,
+    "2026-02": 180600,
+    "2026-03": 294800,
+    "2026-04": 259800,
+    "2026-05": 336300,
+    "2026-06": 270800,
+    "2026-07": 249600,
+    "2026-08": 283600,
+    "2026-09": 380600,
+    "2026-10": 246100,
+    "2026-11": 279800,
+    "2026-12": 161300,
+  },
+  "it-holiday": {
+    "2026-01": 258500,
+    "2026-02": 280300,
+    "2026-03": 283200,
+    "2026-04": 253900,
+    "2026-05": 326300,
+    "2026-06": 257500,
+    "2026-07": 247200,
+    "2026-08": 211300,
+    "2026-09": 278900,
+    "2026-10": 252100,
+    "2026-11": 229100,
+    "2026-12": 318200,
+  },
+  "it-meeting": {
+    "2026-01": 287500,
+    "2026-02": 276500,
+    "2026-03": 213900,
+    "2026-04": 270600,
+    "2026-05": 266700,
+    "2026-06": 205300,
+    "2026-07": 253400,
+    "2026-08": 192400,
+    "2026-09": 237800,
+    "2026-10": 266600,
+    "2026-11": 193100,
+    "2026-12": 207900,
+  },
+  "it-night": {
+    "2026-01": 333400,
+    "2026-02": 208900,
+    "2026-03": 312100,
+    "2026-04": 251200,
+    "2026-05": 216500,
+    "2026-06": 366900,
+    "2026-07": 261000,
+    "2026-08": 277400,
+    "2026-09": 190000,
+    "2026-10": 269000,
+    "2026-11": 262500,
+    "2026-12": 273600,
+  },
+}
+`;
+
+exports[`정산·예산 (settlement) > budgetSummary · monthlyByItem · payerUsage · riskItems 3`] = `"594bf555333bf327bfb38b4dbad9883aed760dd788d53c9d8064093ff2996a41"`;
+
+exports[`정산·예산 (settlement) > budgetSummary · monthlyByItem · payerUsage · riskItems 4`] = `
+[
+  [
+    "i59",
+    "over",
+    177,
+  ],
+  [
+    "i58",
+    "over",
+    174,
+  ],
+  [
+    "i57",
+    "over",
+    171,
+  ],
+  [
+    "i56",
+    "over",
+    168,
+  ],
+  [
+    "i55",
+    "over",
+    165,
+  ],
+  [
+    "i54",
+    "over",
+    162,
+  ],
+  [
+    "i53",
+    "over",
+    159,
+  ],
+  [
+    "i52",
+    "over",
+    156,
+  ],
+  [
+    "i51",
+    "over",
+    153,
+  ],
+  [
+    "i50",
+    "over",
+    150,
+  ],
+]
+`;
+
+exports[`정산·예산 (settlement) > settle (600건·결제자 40명) 1`] = `
+{
+  "byPayer": {
+    "u01": 315800,
+    "u02": 213200,
+    "u03": 321900,
+    "u04": 436300,
+    "u05": 431000,
+    "u06": 451600,
+    "u07": 336300,
+    "u08": 187800,
+    "u09": 373700,
+    "u10": 300500,
+    "u11": 205400,
+    "u12": 227500,
+    "u13": 249700,
+    "u14": 272000,
+    "u15": 166700,
+    "u16": 298800,
+    "u17": 281000,
+    "u18": 357800,
+    "u19": 300400,
+    "u20": 288900,
+    "u21": 168000,
+    "u22": 367500,
+    "u23": 366000,
+    "u24": 240500,
+    "u25": 336600,
+    "u26": 351600,
+    "u27": 198400,
+    "u28": 333200,
+    "u29": 427600,
+    "u30": 319600,
+    "u31": 201300,
+    "u32": 218700,
+    "u33": 180600,
+    "u34": 263700,
+    "u35": 341000,
+    "u36": 236800,
+    "u37": 300000,
+    "u38": 195400,
+    "u39": 138100,
+    "u40": 391900,
+  },
+  "hq": 1565400,
+  "isValid": true,
+  "pass": 0,
+  "personal": 13999400,
+  "sharedCard": 2406600,
+  "total": 15564800,
+}
+`;
+
+exports[`출입증 명세 — 집계·결정 > bulkDecisions · applyBulk (절반 id 지정) 1`] = `
+[
+  53,
+  216,
+  252,
+]
+`;
+
+exports[`출입증 명세 — 집계·결정 > bulkDecisions · applyBulk (절반 id 지정) 2`] = `"eb0122885bef24712ee6eb1244d0bb58e3a93427ee2cc036ac59d83b5e053d9f"`;
+
+exports[`출입증 명세 — 집계·결정 > bulkDecisions · applyBulk (절반 id 지정) 3`] = `"a6a2d014a41a469ec10922d115f53bbbb2b29597be539a75d3150610bb276aa2"`;
+
+exports[`출입증 명세 — 집계·결정 > companySplit · dayLimitOver 1`] = `"d8e05c66a3f1fe0cd8c4877c166cbfe6ce24762788f4ae26a09af8ff232ce126"`;
+
+exports[`출입증 명세 — 집계·결정 > companySplit · dayLimitOver 2`] = `"443568ef48dc7b6df325ee6809f6803a2f82ae1766a9aebb12f0780339cd9f22"`;
+
+exports[`출입증 명세 — 집계·결정 > deductionList 1`] = `
+[
+  [
+    "u32",
+    65200,
+    8,
+    [
+      {
+        "amount": 11100,
+        "count": 1,
+        "name": "방문자3",
+      },
+    ],
+  ],
+  [
+    "u18",
+    46900,
+    7,
+    [
+      {
+        "amount": 3700,
+        "count": 1,
+        "name": "방문자3",
+      },
+      {
+        "amount": 6000,
+        "count": 1,
+        "name": "방문자2",
+      },
+    ],
+  ],
+  [
+    "u39",
+    41500,
+    5,
+    [],
+  ],
+  [
+    "u16",
+    62000,
+    10,
+    [],
+  ],
+  [
+    "u24",
+    39800,
+    5,
+    [],
+  ],
+  [
+    "u21",
+    37600,
+    5,
+    [],
+  ],
+  [
+    "u35",
+    106500,
+    14,
+    [],
+  ],
+  [
+    "u17",
+    108400,
+    15,
+    [],
+  ],
+  [
+    "u28",
+    70700,
+    11,
+    [],
+  ],
+  [
+    "u33",
+    74500,
+    8,
+    [],
+  ],
+  [
+    "u02",
+    86500,
+    11,
+    [],
+  ],
+  [
+    "u34",
+    52400,
+    6,
+    [
+      {
+        "amount": 7900,
+        "count": 1,
+        "name": "방문자3",
+      },
+    ],
+  ],
+  [
+    "u10",
+    51100,
+    8,
+    [],
+  ],
+  [
+    "u27",
+    83700,
+    11,
+    [
+      {
+        "amount": 5800,
+        "count": 1,
+        "name": "방문자4",
+      },
+    ],
+  ],
+  [
+    "u13",
+    76800,
+    12,
+    [
+      {
+        "amount": 12100,
+        "count": 1,
+        "name": "방문자0",
+      },
+      {
+        "amount": 4800,
+        "count": 1,
+        "name": "방문자3",
+      },
+    ],
+  ],
+  [
+    "u06",
+    108200,
+    14,
+    [],
+  ],
+  [
+    "u30",
+    51000,
+    8,
+    [],
+  ],
+  [
+    "u20",
+    19500,
+    4,
+    [],
+  ],
+  [
+    "u29",
+    62700,
+    9,
+    [],
+  ],
+  [
+    "u04",
+    23600,
+    6,
+    [],
+  ],
+  [
+    "u08",
+    31400,
+    6,
+    [
+      {
+        "amount": 11000,
+        "count": 1,
+        "name": "방문자0",
+      },
+    ],
+  ],
+  [
+    "u25",
+    69700,
+    9,
+    [],
+  ],
+  [
+    "u07",
+    47200,
+    5,
+    [],
+  ],
+  [
+    "u09",
+    61600,
+    7,
+    [],
+  ],
+  [
+    "u12",
+    66700,
+    8,
+    [],
+  ],
+  [
+    "u01",
+    26300,
+    5,
+    [],
+  ],
+  [
+    "u38",
+    59600,
+    11,
+    [
+      {
+        "amount": 5500,
+        "count": 1,
+        "name": "방문자2",
+      },
+    ],
+  ],
+  [
+    "u14",
+    31900,
+    5,
+    [],
+  ],
+  [
+    "u22",
+    72400,
+    9,
+    [
+      {
+        "amount": 3500,
+        "count": 1,
+        "name": "방문자2",
+      },
+    ],
+  ],
+  [
+    "u40",
+    41500,
+    6,
+    [],
+  ],
+  [
+    "u31",
+    36100,
+    6,
+    [],
+  ],
+  [
+    "u03",
+    72300,
+    11,
+    [
+      {
+        "amount": 4200,
+        "count": 1,
+        "name": "방문자3",
+      },
+    ],
+  ],
+  [
+    "u05",
+    13800,
+    4,
+    [],
+  ],
+  [
+    "u23",
+    31100,
+    6,
+    [
+      {
+        "amount": 4500,
+        "count": 1,
+        "name": "방문자0",
+      },
+    ],
+  ],
+  [
+    "u15",
+    50200,
+    6,
+    [],
+  ],
+  [
+    "u37",
+    30800,
+    4,
+    [],
+  ],
+  [
+    "u11",
+    70100,
+    7,
+    [
+      {
+        "amount": 27300,
+        "count": 3,
+        "name": "방문자3",
+      },
+    ],
+  ],
+  [
+    "u19",
+    33000,
+    3,
+    [],
+  ],
+  [
+    "u36",
+    46600,
+    8,
+    [],
+  ],
+  [
+    "u26",
+    27800,
+    4,
+    [
+      {
+        "amount": 6200,
+        "count": 1,
+        "name": "방문자3",
+      },
+      {
+        "amount": 4700,
+        "count": 1,
+        "name": "방문자2",
+      },
+    ],
+  ],
+]
+`;
+
+exports[`출입증 명세 — 집계·결정 > deductionList 2`] = `"775b3cb44301d72cb89853e1db7d601c8e5e7cce12dd950a75c6d295162b051f"`;
+
+exports[`출입증 명세 — 집계·결정 > externalGroups 1`] = `"e3dad3010acd4e72b4d61115160e937a46f4e92e4dc0963484da037851cd1b9d"`;
+
+exports[`출입증 명세 — 집계·결정 > memberExpectation (전체 줄·한 사람 줄) 1`] = `
+[
+  {
+    "checked": 2055000,
+    "deducted": 1257600,
+    "expected": 2293600,
+    "likely": 1036000,
+    "overtime": 1291400,
+    "total": 4399200,
+  },
+  {
+    "checked": 77200,
+    "deducted": 44300,
+    "expected": 48800,
+    "likely": 4500,
+    "overtime": 15100,
+    "total": 95200,
+  },
+]
+`;
+
+exports[`출입증 명세 — 집계·결정 > pinClaims · filterLines · nextUndecided (모든 줄에서 다음 건) 1`] = `"7e5e9a01b0f84273b7b6787c8621def528ff561200b32cdb5d75d35083816a92"`;
+
+exports[`출입증 명세 — 집계·결정 > pinClaims · filterLines · nextUndecided (모든 줄에서 다음 건) 2`] = `"0a235765c49b8692f5cf8079fd3d3a9320fa4b9ea170d317d2ea974f39318e8a"`;
+
+exports[`출입증 명세 — 집계·결정 > summarizeStatement 1`] = `
+{
+  "claimed": {
+    "amount": 828200,
+    "count": 117,
+  },
+  "deduct": {
+    "amount": 1257600,
+    "count": 185,
+  },
+  "defaultDeduct": {
+    "amount": 1022000,
+    "count": 135,
+  },
+  "external": {
+    "amount": 118300,
+    "count": 17,
+  },
+  "items": [
+    {
+      "amount": 418600,
+      "count": 46,
+      "name": "회의간식",
+      "places": [
+        {
+          "amount": 418600,
+          "place": "식당",
+        },
+      ],
+    },
+    {
+      "amount": 329800,
+      "count": 44,
+      "name": "휴일근무식대",
+      "places": [
+        {
+          "amount": 329800,
+          "place": "식당",
+        },
+      ],
+    },
+    {
+      "amount": 315300,
+      "count": 37,
+      "name": "야근식대",
+      "places": [
+        {
+          "amount": 315300,
+          "place": "식당",
+        },
+      ],
+    },
+    {
+      "amount": 227700,
+      "count": 54,
+      "name": "카페",
+      "places": [
+        {
+          "amount": 227700,
+          "place": "카페",
+        },
+      ],
+    },
+  ],
+  "overtime": {
+    "amount": 1291400,
+    "count": 181,
+  },
+  "pendingClaims": 117,
+  "people": 47,
+  "total": {
+    "amount": 4399200,
+    "count": 600,
+  },
+  "undecided": {
+    "amount": 1850200,
+    "count": 252,
+  },
+  "unmatched": 26,
+}
+`;
+
+exports[`출입증 명세 — 집계·결정 > summarizeStatement 2`] = `"1e976a0d6b6fdc291bf0358a6e694a8fb215e47ca05a12cb6661fc509f5ce666"`;
+
+exports[`출입증 명세 — 집계·결정 > visibleExtra × 600 · displayColumns 1`] = `
+[
+  {
+    "label": "상품",
+    "value": "",
+  },
+  {
+    "label": "매대",
+    "value": "",
+  },
+  {
+    "label": "상품한글명",
+    "value": "메뉴2",
+  },
+]
+`;
+
+exports[`출입증 명세 — 집계·결정 > visibleExtra × 600 · displayColumns 2`] = `"006ba0baf3106856a2210dccfe4824cda7466b758cf1f50e4a30222f881186fc"`;
+
+exports[`출입증 명세 — 집계·결정 > visibleExtra × 600 · displayColumns 3`] = `
+[
+  {
+    "key": "시간",
+    "name": "시간",
+  },
+  {
+    "key": "상품",
+    "name": "상품",
+  },
+  {
+    "key": "매대",
+    "name": "매대",
+  },
+  {
+    "key": "총금액1",
+    "name": "총금액1",
+  },
+  {
+    "key": "판매시간",
+    "name": "판매시간",
+  },
+  {
+    "key": "상품한글명",
+    "name": "상품한글명",
+  },
+]
+`;
+
+exports[`출입증 명세 — 파일 해석 > buildPreview 1`] = `"4ebd44836d2d9c472264598a6988f386fb4ef37de51ae184e668705c5eebebaa"`;
+
+exports[`출입증 명세 — 파일 해석 > carryOver (기존 600줄 → 새 600줄) 1`] = `"b80e148bd6590ae369e0aaa9382713419ea2d019736b0c508fc05419dd37220a"`;
+
+exports[`출입증 명세 — 파일 해석 > matchHolder × 600줄 1`] = `"2b84ffe98a8950770b8d5015bd6e01cb04342492c8e41d3efff37ac43a9e7c63"`;
+
+exports[`출입증 명세 — 파일 해석 > parseWorkbook (2시트 600줄) 1`] = `
+{
+  "count": 600,
+  "errors": 0,
+  "perSheet": [
+    {
+      "amount": 3746800,
+      "columns": [
+        "시간",
+        "상품",
+        "매대",
+        "총금액1",
+      ],
+      "count": 420,
+      "label": "식당",
+      "sheetName": "식당",
+      "skipped": {
+        "blank": 8,
+        "formula": 1,
+        "noDate": 0,
+        "noName": 0,
+        "total": 0,
+        "zero": 0,
+      },
+    },
+    {
+      "amount": 800900,
+      "columns": [
+        "시간",
+        "상품",
+        "매대",
+      ],
+      "count": 180,
+      "label": "카페",
+      "sheetName": "카페",
+      "skipped": {
+        "blank": 0,
+        "formula": 0,
+        "noDate": 0,
+        "noName": 0,
+        "total": 0,
+        "zero": 0,
+      },
+    },
+  ],
+  "scope": [
+    "식당",
+    "카페",
+  ],
+  "unconfigured": [],
+}
+`;
+
+exports[`출입증 명세 — 파일 해석 > parseWorkbook (2시트 600줄) 2`] = `"688b3444948cf9a9ad74b4d9a870d7c8e086d4fd21ade756be00b74bd90d89be"`;
+
+exports[`출입증 명세 — 파일 해석 > sheetSetups · profileScore · chooseVendor 1`] = `"6f4745b00c7380f8c6badc050abd017463661714a67860edee67efe45c3ee28b"`;
+
+exports[`출입증 명세 — 파일 해석 > sheetSetups · profileScore · chooseVendor 2`] = `
+[
+  216,
+  0,
+]
+`;

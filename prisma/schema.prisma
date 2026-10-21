@@ -1,0 +1,594 @@
+// 운영비 정산 웹앱 데이터 모델 (docs/PLAN.md PART 2 §2)
+// 개발용 SQLite에서는 enum 대신 String을 쓰고, 허용값은 lib/types.ts에서 관리한다.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id          String           @id @default(cuid())
+  name        String
+  startDate   DateTime
+  endDate     DateTime
+  fiscalStart  Int // 회계 시작월 (엑셀 기준 12월)
+  code         String?          @unique // 프로젝트 코드 (사내 시스템 연동 키)
+  parentId     String? // 상위 프로젝트 (서브 프로젝트 구조) — 재무팀이 지정
+  parent       Project?         @relation("ProjectTree", fields: [parentId], references: [id])
+  children     Project[]        @relation("ProjectTree")
+  // 서브 프로젝트를 상위(메인) 프로젝트와 함께 상신 — 서브 팀원은 자기 프로젝트에서 입력하고, 마감·상신은 메인 PM이 메인과 함께 (lib/settle-group.ts)
+  // 메인의 월 마감이 서브의 같은 달 지출도 잠근다. 서브 단독 마감·상신은 막는다
+  settleWithParent Boolean @default(false)
+  // 상신 엑셀 구분명 (예: 운영·대응) — 월 시트 F열·예산 시트 항목 이름 앞에 "구분명_" (없으면 항목 이름 그대로)
+  excelPrefix  String?
+  departmentId String? // 주관 부서
+  department   Department?      @relation(fields: [departmentId], references: [id])
+  members      ProjectMember[]
+  budgets      BudgetLine[]
+  expenses     Expense[]
+  closings     MonthlyClosing[]
+  memberItems  MemberItem[]
+  partners     ProjectPartner[]
+  items        Item[]
+  clientPassEnabled Boolean @default(false) // 외부 프로젝트: 업체 출입증으로 식사·커피 등 사용
+  clientPassName    String? // 예) 다라데이터 출입증
+  // 출입증 표시 항목 (프로젝트 공통, 순서대로 화면·엑셀 열): JSON [{key, name, hidden?}] — key는 줄의 표시 항목 이름표(바뀌지 않음), name은 보이는 이름
+  passDisplayItems String?
+  clientPassItemIds String? // JSON: 출입증 사용분 중 회사 부담으로 고를 수 있는 항목 id (PM이 업체 출입증 설정에서 지정)
+  passUsages        ClientPassUsage[]
+  passStatements    PassStatement[]
+  passHolders       PassHolder[]
+  passImportProfiles PassImportProfile[]
+  // 연차(연속 사업): 같은 사업의 1차·2차… 연차별 계약은 각각 별도 프로젝트로 정산하고 seriesId로 묶는다
+  seriesId   String?
+  series     ProjectSeries? @relation(fields: [seriesId], references: [id])
+  round      Int? // 연차 (1, 2, …)
+  // 생애주기: 기간 종료 후 재무팀이 종료 처리 → 조회 전용, 보관 시 선택 목록에서 숨김 (삭제하지 않음)
+  closedAt   DateTime?
+  closedBy   String?
+  archivedAt DateTime?
+  changes    ContractChange[]
+
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([parentId])
+  @@index([seriesId])
+  @@index([departmentId])
+}
+
+/** 연속 사업 — 연차별 프로젝트 묶음 (예: ○○ 유지관리 1차·2차) */
+model ProjectSeries {
+  id        String    @id @default(cuid())
+  name      String
+  createdAt DateTime  @default(now())
+  projects  Project[]
+}
+
+/**
+ * 변경계약 — 본계약의 내용 변경으로 들어온 과업 (별도 계약 서브 프로젝트와 달리 본계약과 함께 정산·상신)
+ * 담당 PM은 이 과업 전용 입력 항목(ChangeItem)으로 입력하고, 메인 PM은 함께 본다.
+ */
+model ContractChange {
+  id           String       @id @default(cuid())
+  projectId    String
+  seq          Int // 변경 차수
+  title        String // 과업명
+  signedAt     DateTime // 변경계약일
+  amountDelta  BigInt       @default(0) // 계약금액 증감 (원) — 21억 초과 가능 (앱에서는 lib/db가 number로 변환)
+  startDate    DateTime // 과업 기간
+  endDate      DateTime
+  extendedFrom DateTime? // 본계약 기간 연장 시 연장 전 종료일 (이력)
+  managerId    String? // 과업 담당 PM (프로젝트 구성원)
+  carriedFromId String? // 이전 연차에서 이월된 과업 (다음 연차 프로젝트 생성 시 복사 원본, app/api/projects/[id]/next-round)
+  note         String?
+  createdAt    DateTime     @default(now())
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  manager      User?        @relation("changeManager", fields: [managerId], references: [id])
+  // 이월 관계 (설계 검토(2026-10-14) P1-8) — 원본이 지워지면 비운다. 운영 D1은 기존 표에 FK를 더할 수 없어 앱에서만 보장 (prisma/d1/0011)
+  carriedFrom  ContractChange?  @relation("CarriedChange", fields: [carriedFromId], references: [id], onDelete: SetNull)
+  carriedTo    ContractChange[] @relation("CarriedChange")
+  items        ChangeItem[]
+  budgets      BudgetLine[]
+  expenses     Expense[]
+
+  @@unique([projectId, seq])
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([managerId])
+  @@index([carriedFromId])
+}
+
+/** 변경계약 과업 담당 PM이 입력할 수 있는 항목 (팀원 입력 항목과 별도) */
+model ChangeItem {
+  changeId String
+  itemId   String
+  change   ContractChange @relation(fields: [changeId], references: [id], onDelete: Cascade)
+  item     Item           @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@id([changeId, itemId])
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([itemId])
+}
+
+// 조직도 (임시 자체 관리). 회사 조직도 연동 시 code를 외부 부서코드로 매핑해 동기화한다.
+model Department {
+  id       String       @id @default(cuid())
+  name     String
+  code     String?      @unique // 외부 조직도 부서코드
+  parentId String?
+  parent   Department?  @relation("DeptTree", fields: [parentId], references: [id])
+  children Department[] @relation("DeptTree")
+  order    Int          @default(0)
+  active   Boolean      @default(true)
+  level          Int? // 조직 단계 (0=회사)
+  externalId     String?   @unique // 외부 조직도(Soliday) 부서 ID
+  externalSource String? // soliday | (추후) hr …
+  lastSyncedAt   DateTime?
+  epsEnabled Boolean    @default(true) // 프로젝트 체계도(EPS) 사용 — false면 이 조직에 프로젝트를 둘 수 없음 (조직도에는 그대로 표시)
+  headId   String? // 조직장 — 이 조직과 하위 조직의 프로젝트를 조회·취합
+  head     User?        @relation("DeptHead", fields: [headId], references: [id])
+  users    User[]
+  projects Project[]
+
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([parentId])
+  @@index([headId])
+}
+
+model User {
+  id                 String          @id @default(cuid())
+  name               String
+  loginId            String?         @unique // 로그인 아이디 (회사 이메일 주소)
+  email              String?         @unique // 연동 매칭용 (화면에 표시하지 않음)
+  passwordHash       String
+  role               String // MEMBER(프로젝트 팀원) | MANAGER(PM) | HQ(재무팀) | ADMIN(관리자)
+  employeeNo         String?         @unique // 사번 (조직도·SSO 매핑 키)
+  position           String? // 직급 (Soliday 직급 표기 그대로: 사원·책임·수석·팀장 …)
+  joinDate           DateTime? // 입사일
+  departmentId       String?
+  department         Department?     @relation(fields: [departmentId], references: [id])
+  active             Boolean         @default(true) // 비활성 시 로그인 불가 (퇴사·휴직)
+  mustChangePassword Boolean         @default(false) // 임시 비밀번호 발급 후 첫 로그인 시 변경 강제
+  failedLogins       Int             @default(0)
+  sessionVersion     Int             @default(0) // 증가시키면 기존 로그인 세션 모두 무효 (로그아웃·비밀번호 변경·권한 변경·비활성화)
+  lockedUntil        DateTime?
+  lastLoginAt        DateTime?
+  tempPasswordExpiresAt DateTime? // 임시 비밀번호 만료 (발급 후 24시간)
+  deactivatedAt      DateTime?
+  externalSource     String? // 조직도 동기화 출처 (soliday, hr, entra …)
+  employmentStatus   String? // 외부 재직 상태 (ACTIVE, ON_LEAVE …)
+  lastSyncedAt       DateTime?
+  pmAutoGranted      Boolean         @default(false) // PM 지정으로 자동 부여된 PM 권한 (PM에서 모두 빠지면 자동 회수)
+  authProvider       String          @default("local") // local | (추후) sso
+  externalId         String?         @unique // 사내 SSO/IdP 사용자 식별자
+  memberships        ProjectMember[]
+  expenses           Expense[]       @relation("payer")
+  headOf             Department[]    @relation("DeptHead")
+  passUsages         ClientPassUsage[] @relation("passUser")
+  passLines          PassStatementLine[] @relation("passLineUser")
+  passHolders        PassHolder[]        @relation("passHolderUser")
+  managedChanges     ContractChange[]  @relation("changeManager")
+  notifications      Notification[]
+  pushSubscriptions  PushSubscription[]
+
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([departmentId])
+}
+
+model ProjectMember {
+  projectId String
+  userId    String
+  isPayer   Boolean @default(true) // 정산표 결제자 노출 여부
+  isPm      Boolean @default(false) // 이 프로젝트의 PM — 재무팀·관리자가 지정
+  // 철수일 (이 프로젝트 마지막 근무일). 지나면 '이전 팀원' — 접근·입력 불가, 그 기간 지출·출입증 내역의 결제자/사용자로만 남는다 (lib/membership.ts)
+  leftAt    DateTime?
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, userId])
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([userId])
+}
+
+model Category {
+  id    String @id
+  name  String
+  order Int    @default(0)
+  items Item[]
+}
+
+// 항목은 프로젝트별로 관리한다. projectId가 없으면 '공통 기본 항목'(새 프로젝트 생성 시 복사되는 템플릿)
+model Item {
+  id          String       @id @default(cuid())
+  projectId   String?
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  code        String? // 원본 항목 코드 (복사 추적용)
+  categoryId  String
+  name        String
+  accountCode String? // 회계계정 매핑 (복리후생비 등)
+  keywords    String? // 세부내역 키워드 추천용 (쉼표 구분)
+  perPersonLimit Int? // 1인당 한도 (금액 ÷ 대상인원) — 초과 시 소명 필요
+  perCaseLimit   Int? // 1건 한도
+  hardBudget     Boolean @default(false) // true면 예산 잔액 초과 입력 차단, false면 소명 후 허용
+  needsAttendees Boolean @default(true) // 카드 사용분 참석자·대상인원 필수 여부 (공용 비용 항목은 끈다)
+  order       Int          @default(0)
+  active      Boolean      @default(true)
+  // 공통 항목(projectId 없음)일 때: 새 프로젝트를 '공통 기본 항목'으로 만들면 기본으로 넣을지
+  isDefault   Boolean      @default(true)
+  // 업체 출입증 항목일 때: 연결 예산 항목 (예: 야근식대(출입증) → 야근식대). 지금은 따로 보여 주고, 나중에 같은 예산으로 합산
+  linkedItemId String?
+  category    Category     @relation(fields: [categoryId], references: [id])
+  budgets     BudgetLine[]
+  expenses    Expense[]
+  memberItems MemberItem[]
+  passUsages  ClientPassUsage[]
+  changeItems ChangeItem[]
+  passLines   PassStatementLine[]
+
+  // 프로젝트 안에서 이름·코드는 유일 (설계 검토(2026-10-14) P1-8).
+  // 주의: SQLite/D1은 유니크 색인에서 NULL을 서로 다른 값으로 보므로 공통 항목(projectId null)에는 이 제약이 걸리지 않는다
+  // → 공통 항목의 중복은 app/api/master/items 라우트의 앱 검사(findFirst)로 막는다 (앱 검사를 없애지 말 것).
+  // code는 null일 수 있어 같은 프로젝트에 code null 항목이 여럿이어도 된다.
+  @@unique([projectId, name])
+  @@unique([projectId, code])
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([projectId, categoryId, order])
+}
+
+model BudgetLine {
+  id        String  @id @default(cuid())
+  projectId String
+  itemId    String
+  detail    String
+  unitPrice BigInt // 금액 칸은 BigInt (21억 초과 가능, lib/db가 number로 변환)
+  periods   Int
+  planned   BigInt // unitPrice * periods
+  // 묶음 예산: 이 행의 월 단가에 함께 묶인 항목 id (JSON, 대표 항목 itemId 제외). 묶인 항목의 지출은 이 행으로 합산
+  bundleItemIds String?
+  order     Int     @default(0)
+  changeId  String? // 변경계약 증액분이면 해당 변경 차수
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  item      Item    @relation(fields: [itemId], references: [id])
+  change    ContractChange? @relation(fields: [changeId], references: [id], onDelete: SetNull)
+
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([projectId, order])
+  @@index([itemId])
+  @@index([changeId])
+}
+
+model Expense {
+  id         String   @id @default(cuid())
+  projectId  String
+  payerId    String
+  date       DateTime
+  amount     BigInt
+  payMethod  String // PERSONAL_CARD | SHARED_CARD | HQ
+  itemId     String
+  detail     String
+  headcount  Int?
+  attendees  String?
+  merchant   String? // 가맹점 (카드 승인 문자에서 추출)
+  hasExternal   Boolean @default(false) // 외부(거래처) 참석자 포함 — 계정 구분(복리후생비/기업업무추진비) 판단용
+  flags         String? // 규정 점검 결과 코드 (쉼표 구분)
+  justification String? // 소명 사유
+  isHq       Boolean  @default(false)
+  changeId   String? // 변경계약 과업분 (담당 PM 입력 시 자동 지정)
+  change     ContractChange? @relation(fields: [changeId], references: [id], onDelete: SetNull)
+  yearMonth  String
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  payer      User     @relation("payer", fields: [payerId], references: [id])
+  item       Item     @relation(fields: [itemId], references: [id])
+
+  @@index([projectId, yearMonth])
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([projectId, itemId])
+  @@index([projectId, flags]) // 규정 점검 건 조회 (마감 화면·전체 현황) — 점검 건은 소수라 부분 색인 효과
+  @@index([projectId, payerId, date])
+  @@index([createdBy, createdAt])
+  @@index([itemId])
+  @@index([changeId])
+  @@index([payerId])
+}
+
+model MonthlyClosing {
+  id          String    @id @default(cuid())
+  projectId   String
+  yearMonth   String
+  status      String // DRAFT | CLOSED | SUBMITTED | APPROVED | REJECTED
+  closedAt    DateTime?
+  submittedAt DateTime?
+  reviewedAt  DateTime?
+  reviewedBy  String?
+  reviewNote  String?
+  // BrityWorks 결재 문서번호 (재무 승인이 승인할 때·승인 뒤 입력, 연동 전까지 수동) — 설계 검토(2026-10-14) P0-2 ④
+  approvalRef String?
+  // 상신 가드·판단 요약 (설계 검토(2026-10-14) P0-1·P0-3)
+  submitNote     String? // PM 상신 메모 (선택, 반려 후 "무엇을 고쳤는지"도 여기)
+  submitOverride String? // JSON { reason, blockers:[code…], at } — 미완료 항목(출입증 확정 전 등)이 있는데 사유를 적고 상신한 기록
+  lastReviewNote String? // 직전 반려·승인 취소 사유 — 재마감 때 reviewNote를 비우기 전에 옮겨 둔다 (재무 승인 화면 검토 이력)
+  lastReviewedAt DateTime?
+  lastReviewedBy String?
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  snapshots   ClosingSnapshot[]
+
+  @@unique([projectId, yearMonth])
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([status])
+}
+
+// 상신본·승인본 스냅샷 (설계 검토(2026-10-14) P0-2 ①) — 상신·승인 시점에 만든 상신 양식 엑셀(그 달까지 출력 범위)을 그대로 보관한다.
+// 승인된 달의 엑셀은 다시 만들지 않고 이 파일을 내려준다 (BrityWorks 첨부본 = 앱의 승인본, SHA-256으로 대조).
+model ClosingSnapshot {
+  id        String         @id @default(cuid())
+  closingId String
+  closing   MonthlyClosing @relation(fields: [closingId], references: [id], onDelete: Cascade)
+  kind      String // SUBMIT | APPROVE
+  version   Int // 같은 마감 안에서 kind별 1부터
+  // 엑셀 파일(base64) — D1 어댑터의 Bytes는 JSON 숫자 배열로 전달돼 3~4배 커지므로 base64 글자로 저장 (lib/snapshot-server.ts)
+  file      String
+  fileName  String
+  sha256    String
+  size      Int // 원본 바이트 수
+  summary   String // JSON: { ym, total, byPayer:[{id,name,amount}], sharedCard, hq, pass:{confirmed, company}, budget:{planned, spent}, groupIds }
+  createdAt DateTime       @default(now())
+  createdBy String
+
+  @@index([closingId, kind, version])
+}
+
+// 모든 변경 이력 (PART 2 §7)
+model AuditLog {
+  id        String   @id @default(cuid())
+  projectId String?
+  entity    String
+  entityId  String
+  action    String
+  userId    String
+  data      String?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([projectId, createdAt])
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([createdAt])
+  @@index([entity, createdAt])
+  @@index([entity, entityId, createdAt]) // 마감 검토 기록(반려 사유·승인 취소) 조회 — 로그가 쌓여도 그 달 기록만 읽게
+  @@index([userId, createdAt]) // 사용자별 활동 기록 (설계 검토(2026-10-14) P1-8)
+}
+
+// PM 설정: 팀원 입력 화면에 노출할 항목 (재무팀 예산 항목 중에서 선택)
+model MemberItem {
+  projectId String
+  itemId    String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  item      Item    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, itemId])
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([itemId])
+}
+
+// Soliday 화면에서 보낸 조직도 (관리자가 미리보기 후 적용). 이름·이메일·부서·직위·재직상태만 보관
+model DirectoryImport {
+  id          String    @id @default(cuid())
+  source      String    @default("soliday")
+  departments String // JSON
+  employees   String // JSON
+  deptCount   Int
+  userCount   Int
+  createdBy   String
+  createdAt   DateTime  @default(now())
+  appliedAt   DateTime?
+}
+
+// 1회용 토큰 사용 기록 (조직도 전송 링크 재사용 방지)
+model UsedToken {
+  jti    String   @id
+  usedAt DateTime @default(now())
+}
+
+// 리프레시 토큰 회전 기록 — 재사용(탈취) 탐지. family = 로그인 1회(계열). 옛 토큰이 유예 뒤 다시 오면 그 사용자 전체 로그아웃 (lib/refresh-store.ts)
+model RefreshToken {
+  jti      String    @id
+  userId   String
+  family   String
+  issuedAt DateTime  @default(now())
+  usedAt   DateTime? // 회전되어 사용된 시각 (비어 있으면 아직 안 씀)
+  exp      DateTime
+
+  @@index([userId])
+  @@index([exp])
+}
+
+
+// (옛 방식) 출입증 사용 내역 — 쓰기 경로 없음, 조회·엑셀 전용. 새 내역은 PassStatement/PassStatementLine. 이관·제거 예정(REVIEW P1-7)
+model ClientPassUsage {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String // 사용자
+  date      DateTime
+  yearMonth String
+  amount    BigInt
+  itemId    String // 사용 항목 (프로젝트 항목, 예: 야근식대) — 한도는 항목 기준
+  placeType String // 사용처 구분: 식당 | 카페 | 편의점 | 기타
+  place     String? // 사용처 이름
+  headcount Int?
+  memo      String?
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation("passUser", fields: [userId], references: [id])
+  item      Item     @relation(fields: [itemId], references: [id])
+
+  @@index([projectId, yearMonth])
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([projectId, userId, itemId, date])
+  @@index([itemId])
+  @@index([userId])
+}
+
+// 업체 출입증 월 사용 내역 — 업체가 보내 준 엑셀/CSV를 PM이 올린다. 개인 법인카드 정산과 따로 처리하되, 확정된 회사 부담 줄은 본사 합·예산 집행에 합쳐지고(lib/settlement passSettlementRows) 상신 가드(PASS_OPEN·PASS_UNLINKED)가 확정 여부를 본다
+// 야근으로 인정된 건은 회사 부담, 나머지는 급여 공제 (lib/pass-statement.ts)
+model PassStatement {
+  id          String              @id @default(cuid())
+  projectId   String
+  yearMonth   String
+  fileName    String
+  uploadedBy  String
+  uploadedAt  DateTime            @default(now())
+  status      String              @default("OPEN") // OPEN | CONFIRMED
+  confirmedBy String?
+  confirmedAt DateTime?
+  project     Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  lines       PassStatementLine[]
+
+  @@unique([projectId, yearMonth])
+}
+
+model PassStatementLine {
+  id             String        @id @default(cuid())
+  statementId    String
+  date           DateTime? // 날짜 열이 없는 양식이면 비어 있음 (월은 명세의 yearMonth)
+  holderName     String // 업체 내역의 이름 그대로
+  holderKey      String? // 대표 연결 키 (첫 보조 연결 열 값, 없으면 비어 있음)
+  place          String?
+  amount         BigInt
+  userId         String? // 연결된 팀원
+  memberClaim    String? // 팀원 표시: OVERTIME(업무 사용 요청) | null(표시 없음 = 본인 부담 기본값). 옛 값 PERSONAL은 표시 없음과 같게 읽는다
+  memberNote     String?
+  decision       String? // OVERTIME(회사 부담) | DEDUCT(본인 부담 — 급여 공제)
+  // 회사 부담 항목 (예: 야근식대) — 팀원이 요청 시 고르고 PM이 확정. 식당·카페가 달라도 항목별로 합산
+  usageItemId    String?
+  usageItem      Item?         @relation(fields: [usageItemId], references: [id])
+  decisionSource String? // PM | SOLIDAY(자동) | HQ | ADMIN — DEFAULT(확정 후 빈 값=본인 부담)는 저장하지 않고 읽을 때 채움(applyConfirmedDefaults)
+  decidedBy      String?
+  decidedAt      DateTime?
+  order          Int           @default(0)
+  // 업체 파일의 추가 정보
+  time           String? // 판매시간 (HH:MM:SS)
+  cardNo         String? // 사원카드번호 (문자열 그대로, 앞자리 0 보존)
+  empNo          String? // 업체 쪽 사원번호
+  company        String? // 소속업체
+  item           String? // 상품명
+  sheetName      String? // 가져온 시트
+  placeType      String? // 구분 = 가져온 시트 이름 (예: 식당, 카페)
+  vendor         String? // 업체 이름 (올릴 때 쓴 업체 서식) — 다시 올리면 같은 업체·같은 구분의 줄만 바뀐다. 비어 있으면 업체 미지정
+  // 외부인 사용 → PM 사용분으로 처리 (userId = PM, PM이 외부인에게 받아 냄)
+  onBehalfName   String? // 실제 사용자 (업체 파일의 이름)
+  collectFrom    String? // 받을 사람 (기본 = onBehalfName)
+  collectedAt    DateTime? // 받음 확인
+  collectNote    String?
+  // 업체 양식의 표시 항목 값 (JSON [{label, value}], 설정한 순서) · 보조 연결 키 (JSON ["<머리글>:<값>"])
+  extra          String?
+  matchKeys      String?
+  statement      PassStatement @relation(fields: [statementId], references: [id], onDelete: Cascade)
+  user           User?         @relation("passLineUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([statementId])
+  // 팀원 화면(명세의 내 줄)·할 일(확인할 요청·직원 미확인 건수) 조회용 (성능 점검 2026-10)
+  @@index([statementId, userId])
+  @@index([statementId, decision, memberClaim])
+  @@index([userId])
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([usageItemId])
+}
+
+// 업체 내역의 이름·출입증 번호 → 직원 매핑 (프로젝트별로 기억해 다음 달 자동 매칭)
+model PassHolder {
+  projectId String
+  holderKey String // "<보조 연결 열 머리글>:<값>" 또는 "nm:<이름>" (정규화)
+  userId    String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User    @relation("passHolderUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, holderKey])
+  // 조회 성능 색인 (코드 리뷰 E3·E4·E5·E16)
+  @@index([userId])
+}
+
+// 업체 양식 — 프로젝트(=출입증 업체)별 파일 구성. 처음 올릴 때 시트·열을 확인해 저장하고 다음부터 자동 적용
+// 업체 서식 — 프로젝트당 업체별로 여러 개 (업체가 바뀌면 달마다 다른 서식). 업로드할 때 파일 머리글과 가장 잘 맞는 서식을 자동으로 고른다
+model PassImportProfile {
+  id         String   @id @default(cuid())
+  projectId  String
+  vendorName String // 업체 이름 (프로젝트 안에서 겹치지 않음, 명세 줄 vendor와 같은 값)
+  // 정산 기간 시작일: 21이면 결산 월 M = (M-1)월 21일 ~ M월 20일, 1이면 달력 월
+  periodStartDay Int @default(1)
+  sheets     String // JSON: [{ sheetName, headerRow, nameCol, keyCols[], amountCols[], dateCol?, displayCols[] }] (머리글 글자, 없으면 "#열번호")
+  updatedBy  String
+  updatedAt  DateTime @updatedAt
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, vendorName])
+}
+
+// 협력 인력: 우리 회사 인력은 아니지만 프로젝트를 함께 하는 사람 (협력사 프리랜서 등) — 지출 입력 참석자 칩으로 쓴다.
+// 로그인 계정 없음. 이름·소속만 저장 (연락처 저장 금지). 철수하면 active=false (기존 지출의 참석자 기록은 그대로)
+model ProjectPartner {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  company   String?
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+}
+
+// 로그인·비밀번호 확인 실패 기록 — IP·계정별 시도 제한 (여러 서버 인스턴스가 공유, lib/auth-throttle.ts)
+// 1시간 지난 행은 실패를 기록할 때 함께 지운다
+model AuthFailure {
+  id      String   @id @default(cuid())
+  scope   String // login | password
+  ip      String? // 요청 IP (알 수 없으면 비어 있음)
+  subject String // 정규화한 로그인 아이디 또는 사용자 id
+  at      DateTime @default(now())
+
+  @@index([scope, ip, at])
+  @@index([scope, subject, at])
+  @@index([at])
+}
+
+// 앱 내 알림 (설계 검토(2026-10-14) P1-2 ②) — 상신·승인·반려·승인 취소, 입력·소명 요청, 출입증 확인·확정을 받는 사람별로 쌓는다.
+// 메신저 연동 없이 앱 안에서만 보여 준다. 만드는 쪽은 lib/notifications.ts(순수함수) → lib/notification-server.ts(notify)
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String // closing-submit | closing-approve | closing-reject | closing-revoke | remind-noinput | remind-unexplained | pass-check | pass-confirm
+  title     String // 한 줄 (예: "9월 반려 — 사유를 확인하세요")
+  body      String? // 보조 문장 (반려 사유 등, 300자 이내)
+  href      String? // 누르면 갈 곳 (앱 내 경로). projectId가 있으면 그 프로젝트로 바꾼 뒤 이동 (components/Nav Toaster와 같은 방식)
+  projectId String?
+  yearMonth String?
+  key       String? // 중복 방지 키 (같은 사용자에게 같은 key면 다시 만들지 않는다)
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  @@unique([userId, key])
+  @@index([userId, readAt, createdAt]) // 안 읽은 것 먼저·최신순 목록, 안 읽은 건수
+}
+
+// 웹 푸시 구독 — 기기(브라우저)마다 하나. 앱 내 알림을 저장할 때 같은 내용을 그 사람의 기기로도 보낸다 (lib/push-server.ts)
+model PushSubscription {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint   String    @unique // 푸시 서비스 주소 (브라우저가 발급)
+  p256dh     String // 수신 공개키 (base64url)
+  auth       String // 인증 비밀 (base64url)
+  userAgent  String? // 기기 구분용 (200자 이내)
+  createdAt  DateTime  @default(now())
+  lastSentAt DateTime? // 마지막 발송 성공
+
+  @@index([userId])
+}

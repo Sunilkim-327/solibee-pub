@@ -1,0 +1,15 @@
+// Cloudflare Workers 배포 설정 (OpenNext). 배포: pnpm cf:deploy
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "solibee",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "solibee" }],
+  // 운영 DB — 로컬 개발은 prisma/dev.db(SQLite) 그대로
+  "d1_databases": [{ "binding": "DB", "database_name": "opex-db", "database_id": "<D1 데이터베이스 ID>" }],
+  // 화면 하나에 D1 조회가 10~20번 → 워커를 DB 가까이에서 실행해 왕복 지연을 줄인다
+  "placement": { "mode": "smart" },
+  "observability": { "enabled": true }
+}
